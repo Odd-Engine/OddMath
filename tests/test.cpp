@@ -2,18 +2,19 @@
 #include <limits>
 
 #include "Overflow.h"
+#include "gtest/gtest.h"
 
-int main() {
-  int8_t first = -1;
-  int8_t second = std::numeric_limits<int8_t>::min();
+using namespace math;
+using namespace overflow;
 
-  if (math::overflow::isSumValid(first, second)) {
-    std::cout << "Sum of " << static_cast<int16_t>(first) << " and "
-              << static_cast<int16_t>(second) << " is valid\n";
-  } else {
-    std::cout << "Sum of " << static_cast<int16_t>(first) << " and "
-              << static_cast<int16_t>(second) << " is not valid\n";
-  }
+TEST(TestOverflow, Uint8Overflow) {
+  uint8_t first = 255U;
+  uint8_t second = 10U;
+  EXPECT_FALSE(isSumValid(first, second));
+}
 
-  return 0;
+TEST(TestOverflow, Uint8NonOverflow) {
+  uint8_t first = 200U;
+  uint8_t second = 10U;
+  EXPECT_TRUE(isSumValid(first, second));
 }

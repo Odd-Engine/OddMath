@@ -28,9 +28,6 @@ bool isSumValid(uint8_t first, uint8_t second);
 bool isSumValid(uint16_t first, uint16_t second);
 bool isSumValid(uint32_t first, uint32_t second);
 bool isSumValid(uint64_t first, uint64_t second);
-
-bool isSumValid(float32_t first, float32_t second);
-bool isSumValid(float64_t first, float64_t second);
 ///@}
 
 }  // namespace overflow
