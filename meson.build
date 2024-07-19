@@ -6,14 +6,16 @@ project('Odd\'s Math Library', 'cpp',
         'default_library=static'
     ])
 
-gtest_dep = dependency('gtest', main: true)
-
 subdir('Overflow')
 subdir('tests')
 
 r = run_command('python', 'scripts/install_wraps.py', check: true)
+gtest_proj = subproject('gtest')
+gtest_dep = gtest_proj.get_variable('gtest_dep')
+gmock_dep = gtest_proj.get_variable('gmock_dep')
+gtest_main_dep = gtest_proj.get_variable('gtest_main_dep')
 
-mathlib = library('math', overflow_files, include_directories: overflow_includes)
+mathlib = library('liboddmath', overflow_files, include_directories: overflow_includes)
 
 test_suite = executable('test_suite',
                         test_files,
@@ -22,7 +24,9 @@ test_suite = executable('test_suite',
                         install: true,
                         build_by_default: false,
                         dependencies: [
-                            gtest_dep
+                            gtest_dep,
+                            gmock_dep,
+                            gtest_main_dep
                         ])
 
 test('run tests', test_suite)

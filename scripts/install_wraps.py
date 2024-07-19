@@ -10,7 +10,11 @@ if not path.exists(SUBPROJECTS_PATH):
     mkdir(SUBPROJECTS_PATH)
 
 def get_wrap(wrap):
-    subprocess.Popen(["meson", "wrap", "install", wrap], cwd=PROJECT_ROOT).wait()
+    if not path.isfile(f"{path.join(SUBPROJECTS_PATH, f'{wrap}.wrap')}"):
+        print(f"Downloading {wrap}")
+        subprocess.Popen(["meson", "wrap", "install", wrap], cwd=PROJECT_ROOT).wait()
+    else:
+        print(f"Skipping {wrap} as it already exists")
 
 wraps = [
     "gtest"
