@@ -1,0 +1,89 @@
+name: Run GTest Linux
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'scripts/**'
+      # re-add the script to download wraps
+      - '!scripts/install_wraps.py'
+      - '.github/workflows/*.yml'
+      # re-add current file
+      - '!.github/workflows/linux-gtest.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'scripts/**'
+      # re-add the script to download wraps
+      - '!scripts/install_wraps.py'
+      - '.github/workflows/*.yml'
+      # re-add current file
+      - '!.github/workflows/linux-gtest.yml'
+
+jobs:
+  linux-gtest:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest]
+
+        c_compiler: [gcc, clang]
+        include:
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get install libcapture-tiny-perl libdatetime-format-dateparse-perl -y
+          VERSION="2.1"
+          mkdir Iconv
+          cd Iconv
+          wget "https://github.com/linux-test-project/lcov/releases/download/v$VERSION/lcov-$VERSION.tar.gz"
+          tar -xzf "lcov-$VERSION.tar.gz"
+          cd "lcov-$VERSION"
+          sudo make install
+
+      - name: Create environment
+        run: |
+          cd ${{ github.workspace }}
+          python3 -m venv venv
+          source venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up meson
+        run: |
+          python3 scripts/install_wraps.py
+          meson setup build -Dcoverage=true
+
+      - name: Build lib and test suite
+        run: |
+          cd build
+          meson compile
+          meson compile test_suite
+
+      - name: Run tests
+        run: ${{ github.workspace }}/build/test_suite
+
+      - name: Generate coverage info
+        run: |
+          lcov --capture --directory ${{ github.workspace }} --output-file ${{ github.workspace }}/coverage.info --exclude subprojects --exclude tests --exclude /usr --branch-coverage
+          genhtml ${{ github.workspace }}/coverage.info --output-directory ${{ github.workspace }}/coverage --branch-coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.cpp_compiler }}
+          path: ${{ github.workspace }}/coverage

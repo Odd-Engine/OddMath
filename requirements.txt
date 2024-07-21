@@ -1,4 +1,3 @@
 meson
 ninja
 pre-commit
-pygame-ce
