@@ -9,6 +9,11 @@ project('Odd\'s Math Library', 'cpp',
 subdir('Overflow')
 subdir('tests')
 
+if (get_option('coverage'))
+    add_global_arguments('--coverage', language: 'cpp')
+    add_global_link_arguments('--coverage', language: 'cpp')
+endif
+
 r = run_command('python', 'scripts/install_wraps.py', check: true)
 gtest_proj = subproject('gtest')
 gtest_dep = gtest_proj.get_variable('gtest_dep')
@@ -21,12 +26,9 @@ test_suite = executable('test_suite',
                         test_files,
                         include_directories: overflow_includes,
                         link_with: mathlib,
-                        install: true,
                         build_by_default: false,
                         dependencies: [
                             gtest_dep,
                             gmock_dep,
                             gtest_main_dep
                         ])
-
-test('run tests', test_suite)

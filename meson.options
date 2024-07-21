@@ -1,0 +1,2 @@
+# whether to enable coverage or not
+option('coverage', type : 'boolean', value : false)
